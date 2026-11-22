@@ -1,23 +1,25 @@
+#!/usr/bin/env python3
 # Juan David Alvarez Gamez
 # Archivo para trabajar en Orca dentro de un servidor CentOS
+#
+# Para cada base de la lista crea una carpeta con la entrada de ORCA (.inp)
+# y el trabajo de Slurm (job_slurm.sh) de una celda de MnAl.
+#
+# Uso:  python OrcaWork.py [--destino CARPETA] [--orca RUTA_AL_EJECUTABLE]
 
-#!/bin/python
-# Se cargan las librerias
-
-import os
-import sys
-import os.path
-import errno
+import argparse
 import datetime
+import errno
+import os
+import os.path
 
-# Construccion de la fecha del archivo
-hoy = datetime.datetime.today()
-dia = hoy.strftime('%d')
-mes = hoy.strftime('%m')
-ano = hoy.strftime('%Y')
+# Carpeta donde se crean las simulaciones y ejecutable de ORCA en el servidor.
+DIR_PRINCIPAL = '/home/dsalazar/Simulacion_ORCA/MnAl_NumFreq/'
+DIR_ORCA = '/home/APPS/ORCA/orca_4_2_1_linux_x86-64_openmpi314/orca'
 
 # Modulo de almacenamiento de bases
 Bases = ['6-31++G**', '6-31+G(2d)', '6-31+G(2d,2p)', '6-31+G(2d,p)', '6-31+G(2df)', '6-31+G(2df,2pd)', '6-31+G(d)', '6-31+G(d,p)', '6-31+G*', '6-31+G**', '6-31G', '6-31G(2d)', '6-311+G(2d)', '6-311+G(2d,2p)', '6-311+G(2d,p)','6-311+G(2df)','6-311+G(2df,2p)','6-311+G(2df,2pd)', '6-311+G(d)','6-311+G(d,p)', '6-311G','6-31G(2d,2p)','6-31G(2d,p)','6-31G(d)','6-31G(d,p)', 'aug-pcseg-0','aug-pcseg-1','def2-mSVP','def2-mTZVP','def2-SV(P)','def2-SVP','def2-TZVP','DKH-def2-SV(P)','DKH-def2-SVP','DKH-def2-TZVP','DKH-def2-TZVP(-f)','DKH-def2-TZVPP','DKH-SV(P)','DKH-SVP','DKH-TZV(P)','DKH-TZVP','DKH-TZVPP','ma-def2-mSVP','ma-def2-SV(P)','ma-def2-SVP','ma-def2-TZVP','ma-def2-TZVP(-f)','ma-def2-TZVPP', 'ma-DKH-def2-SV(P)','ma-DKH-def2-TZVP','ma-DKH-def2-TZVP(-f)','ma-DKH-def2-TZVPP','ma-ZORA-def2-SV(P)','ma-ZORA-def2-SVP','ma-ZORA-def2-TZVP(-f)','ma-ZORA-def2-TZVPP','old-DKH-SV(P)','old-DKH-SVP','old-DKH-TZV(P)','old-DKH-TZVP','old-DKH-TZVPP','old-SV','old-SV(P)','old-SVP','old-TZV', 'old-TZVPP','old-ZORA-SV(P)','old-ZORA-SVP','old-ZORA-TZV(P)','old-ZORA-TZVP','old-ZORA-TZVPP', 'Partridge-1', 'Partridge-2', 'Partridge-3','pc-1','pcseg-0', 'pcseg-2','pcSseg-0','pcSseg-1','pcSseg-2','SV ','SV(P)','SVP','TZV','TZV(P)','TZVP','TZVPP','ZORA-def2-SV(P)','ZORA-def2-SVP','ZORA-def2-TZVP','ZORA-def2-TZVP(-f)','ZORA-def2-TZVPP','ZORA-SV(P)','ZORA-SVP','ZORA-TZV(P)','ZORA-TZVP','ZORA-TZVPP']
+
 
 # Modulo para crear los directorios
 def mkdir_p(directorio):
@@ -28,20 +30,22 @@ def mkdir_p(directorio):
             pass
         else: raise
 
-# Indicaciones del trabajo
-Nombre_trabajo = input('Indique el nombre que tendra el trabajo de simulacion: ')
-Numero_nucleos = input('Indique el numero total de nucleos a usar: ')
-Nucleos_nodo = input('El numero de nucleos a usar por nodo: ')
-Modulo = input('Indique el modulo a usar (test, short, normal, normal2): ')
-Metodo = input('Indique el metodo de simulacion a usar (HF, B3LYP, etc):')
-Convergencia = input('Indique la convergencia a usar (SlowConv, VerySlowConv, etc): ')
-Type_conv = input('Indique el tipo de convergencia a utilizar (Loose, Sloppy, Normal, Strong, Tight, VeryTight): ')
-dir_principal = '/home/dsalazar/Simulacion_ORCA/MnAl_NumFreq/'
-dir_orca = '/home/APPS/ORCA/orca_4_2_1_linux_x86-64_openmpi314/orca'
 
 # Modulo para escribir el script de Orca 4.2.1 y el job_slurm:
-def main():
-    for base in range(1,len(Bases)):
+def generar(Nombre_trabajo, Numero_nucleos, Nucleos_nodo, Modulo, Metodo, Convergencia, Type_conv,
+            dir_principal=DIR_PRINCIPAL, dir_orca=DIR_ORCA, fecha=None):
+    """Crea una carpeta MnAl_proof_<n> por cada base, con su .inp y su job_slurm.sh.
+
+    El numero de la carpeta es la posicion de la base en la lista Bases.
+    Devuelve cuantas carpetas genero.
+    """
+    # Construccion de la fecha del archivo
+    hoy = fecha or datetime.datetime.today()
+    dia = hoy.strftime('%d')
+    mes = hoy.strftime('%m')
+    ano = hoy.strftime('%Y')
+
+    for base in range(len(Bases)):
         mkdir_p(os.path.dirname('{}/{}/MnAl_{}_{}_{}/MnAl_proof_{}/'.format(dir_principal, Nombre_trabajo, ano, mes, dia, base)))
 
         os.umask(0)
@@ -105,4 +109,31 @@ def main():
         orca_file.write('* \n')
         orca_file.close()
 
-main()
+    return len(Bases)
+
+
+# Indicaciones del trabajo
+def pedir_datos():
+    return dict(
+        Nombre_trabajo=input('Indique el nombre que tendra el trabajo de simulacion: '),
+        Numero_nucleos=input('Indique el numero total de nucleos a usar: '),
+        Nucleos_nodo=input('El numero de nucleos a usar por nodo: '),
+        Modulo=input('Indique el modulo a usar (test, short, normal, normal2): '),
+        Metodo=input('Indique el metodo de simulacion a usar (HF, B3LYP, etc):'),
+        Convergencia=input('Indique la convergencia a usar (SlowConv, VerySlowConv, etc): '),
+        Type_conv=input('Indique el tipo de convergencia a utilizar (Loose, Sloppy, Normal, Strong, Tight, VeryTight): '),
+    )
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description='Genera las entradas de ORCA y los trabajos de Slurm, uno por base.')
+    parser.add_argument('--destino', default=DIR_PRINCIPAL, help='carpeta donde se crean las simulaciones')
+    parser.add_argument('--orca', default=DIR_ORCA, help='ruta al ejecutable de ORCA')
+    args = parser.parse_args(argv)
+
+    total = generar(**pedir_datos(), dir_principal=args.destino, dir_orca=args.orca)
+    print('Se generaron {} carpetas en {}'.format(total, args.destino))
+
+
+if __name__ == '__main__':
+    main()
