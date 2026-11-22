@@ -1,6 +1,6 @@
 # Modulos_Orca
 
-Scripts para preparar y lanzar en un clúster con Slurm un barrido de simulaciones de [ORCA](https://orcaforum.kofo.mpg.de) 4.2.1: la misma celda de MnAl (10 átomos de Mn y 4 de Al) calculada con cada una de las 97 bases de la lista, para comparar resultados entre bases.
+Scripts para preparar y lanzar en un clúster con Slurm un barrido de simulaciones de ORCA 4.2.1: la misma celda de MnAl (10 átomos de Mn y 4 de Al) calculada con cada una de las 97 bases de la lista.
 
 ```mermaid
 flowchart LR
