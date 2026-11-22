@@ -1,0 +1,38 @@
+! B3LYP SlowConv 6-31+G(2d) 
+! KDIIS SOSCF Grid4 FinalGrid5 LargePrint xyzfile keepDens Opt NumFreq 
+
+%maxcore 11000 
+
+%pal 
+nprocs 8 
+end 
+
+%scf 
+print[p_mos] 1		# Imprime orbitales moleculares. 
+FlipSpin 0			# FlipSpin es un vector y se puede dar una lista de atomos en la que se desea invertir el giro. 
+FinalMs	 0.0			# El valor deseado de Ms del determinante de simetria rota. 
+SOSCFStart 0.00000033		# Retraso en el inicio del gradiente orbital 
+soscfmaxit 150000			# Control de iteraciones para SOSCF 
+sthresh 1e-7			# Aumenta el umbral para reducir las dependencias lineales 
+convergence Tight 
+MaxIter 150000 
+DIISMaxEq 40 
+directresetfreq 1 
+end 
+
+* xyz 0 1 
+Mn 0 0 0  
+Mn 3.921 0 0 
+Mn 0 3.921 0  
+Mn 3.921 3.921 0 
+Mn 1.961 1.961 0 
+Mn 0 0 3.586 
+Mn 3.921 0 3.586 
+Mn 0 3.921 3.586 
+Mn 3.921 3.921 3.586 
+Mn 1.961 1.961 3.586 
+Al 1.961 0 1.793 
+Al 0 1.961 1.793 
+Al 1.961 3.921 1.793 
+Al 3.921 1.961 1.793 
+* 
